@@ -210,13 +210,15 @@ const handleViewDetail = async (row: any) => {
   }
 }
 
-// 导出单个 Markdown
+// 导出单个 Markdown（直接下载）
 const handleExportMarkdown = async (row: any) => {
   try {
-    const res: any = await reqApi.exportMarkdown(row.reqNo)
-    ElMessage.success(`导出成功，文件路径: ${res.data}`)
+    const res = await reqApi.downloadMarkdown(row.reqNo)
+    if (res.success) {
+      ElMessage.success('下载成功')
+    }
   } catch (error) {
-    console.error('导出失败', error)
+    console.error('下载失败', error)
   }
 }
 

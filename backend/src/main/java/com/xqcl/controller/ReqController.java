@@ -12,13 +12,17 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
- * 需求管理 Controller
+ * 需求管理 Controller（优化版）
  *
  * @author xqcl
  * @since 2024-01-15
@@ -86,7 +90,7 @@ public class ReqController {
     }
 
     /**
-     * 导出单个需求的 Markdown 文件
+     * 导出单个需求的 Markdown 文件（返回文件路径）
      */
     @GetMapping("/export/markdown/{reqNo}")
     @Operation(summary = "导出单个需求的 Markdown", description = "根据需求评估单号导出 Markdown 文件")
@@ -97,6 +101,35 @@ public class ReqController {
         } catch (Exception e) {
             log.error("导出 Markdown 失败", e);
             return Result.fail("导出失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 下载单个需求的 Markdown 文件（直接下载）
+     */
+    @GetMapping("/download/markdown/{reqNo}")
+    @Operation(summary = "下载单个需求的 Markdown", description = "根据需求评估单号下载 Markdown 文件")
+    public ResponseEntity<byte[]> downloadMarkdown(@PathVariable String reqNo) {
+        try {
+            // 生成 Markdown 内容
+            String content = reqListService.generateMarkdownContent(reqNo);
+
+            // 构建文件名（URL编码，支持中文文件名）
+            String fileName = "需求_" + reqNo + ".md";
+            String encodedFileName = java.net.URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+
+            // 返回文件内容
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDispositionFormData("attachment", encodedFileName);
+            headers.setContentLength(content.getBytes(StandardCharsets.UTF_8).length);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(content.getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            log.error("下载 Markdown 失败", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 

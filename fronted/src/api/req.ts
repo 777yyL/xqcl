@@ -65,9 +65,33 @@ export const reqApi = {
     })
   },
 
-  // 导出单个需求的 Markdown
+  // 导出单个需求的 Markdown（返回文件路径）
   exportMarkdown: (reqNo: string) => {
     return request.get(`/req/export/markdown/${reqNo}`)
+  },
+
+  // 下载单个需求的 Markdown（直接下载文件）
+  downloadMarkdown: (reqNo: string) => {
+    // 使用原生 axios 发送请求，因为需要处理二进制数据
+    return axios.get(`/api/req/download/markdown/${reqNo}`, {
+      responseType: 'blob',
+      timeout: 60000
+    }).then(response => {
+      // 创建下载链接
+      const blob = new Blob([response.data], { type: 'text/markdown;charset=utf-8' })
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `需求_${reqNo}.md`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+      return { success: true }
+    }).catch(error => {
+      ElMessage.error('下载失败: ' + error.message)
+      return { success: false }
+    })
   },
 
   // 批量导出 Markdown
