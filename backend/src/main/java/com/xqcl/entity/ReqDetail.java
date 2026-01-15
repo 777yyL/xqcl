@@ -10,8 +10,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 需求详情实体类
@@ -109,55 +107,46 @@ public class ReqDetail implements Serializable {
     private String evaluatorDept;
 
     @Schema(description = "评估单创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    private String createTime;
 
     @Schema(description = "评估单提交时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime submitTime;
+    private String submitTime;
 
     @Schema(description = "评估单完成时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime completeTime;
+    private String completeTime;
 
     @Schema(description = "组件评估开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime componentEvalStartTime;
+    private String componentEvalStartTime;
 
     @Schema(description = "组件评估完成时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime componentEvalEndTime;
+    private String componentEvalEndTime;
 
     @Schema(description = "组件评估周期")
     private String componentEvalCycle;
 
     @Schema(description = "评估用时(h)")
-    private BigDecimal evalHours;
+    private String evalHours;
 
     @Schema(description = "停留时间")
-    private BigDecimal stayTime;
+    private String stayTime;
 
     @Schema(description = "评估工作量")
-    private BigDecimal evalWorkload;
+    private String evalWorkload;
 
     @Schema(description = "工作量详情")
     private String workloadDetail;
 
     @Schema(description = "排期开始时间（研发评估）")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime rdScheduleStartTime;
+    private String rdScheduleStartTime;
 
     @Schema(description = "排期结束时间（研发评估）")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime rdScheduleEndTime;
+    private String rdScheduleEndTime;
 
     @Schema(description = "排期开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleStartTime;
+    private String scheduleStartTime;
 
     @Schema(description = "排期结束时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleEndTime;
+    private String scheduleEndTime;
 
     @Schema(description = "定制单号")
     private String customNo;
@@ -167,13 +156,11 @@ public class ReqDetail implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField(fill = FieldFill.INSERT)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Schema(description = "更新时间")
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
     @Schema(description = "备注")
     private String remark;

@@ -1,13 +1,10 @@
 package com.xqcl.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 
 /**
  * 需求列表实体类
@@ -90,81 +87,73 @@ public class ReqList implements Serializable {
     private String currentHandler;
 
     @Schema(description = "评估单创建时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createTime;
+    private String createTime;
 
     @Schema(description = "评估单提交时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime submitTime;
+    private String submitTime;
 
     @Schema(description = "最后提交时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastSubmitTime;
+    private String lastSubmitTime;
 
     @Schema(description = "评估时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime evalTime;
+    private String evalTime;
 
     @Schema(description = "最后评估时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime lastEvalTime;
+    private String lastEvalTime;
 
     @Schema(description = "总评估用时（小时）")
-    private BigDecimal totalEvalHours;
+    private String totalEvalHours;
 
     @Schema(description = "评估停留时间（天）")
-    private BigDecimal evalStayDays;
+    private String evalStayDays;
 
     @Schema(description = "排期开始时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleStartTime;
+    private String scheduleStartTime;
 
     @Schema(description = "排期结束时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime scheduleEndTime;
+    private String scheduleEndTime;
 
     @Schema(description = "总工作量（人天）")
-    private BigDecimal totalWorkload;
+    private String totalWorkload;
 
     @Schema(description = "开发资源分布总部工作量(人天)")
-    private BigDecimal devHqWorkload;
+    private String devHqWorkload;
 
     @Schema(description = "开发资源分布区域")
     private String devRegion;
 
     @Schema(description = "开发资源分布区域工作量(人天)")
-    private BigDecimal devRegionWorkload;
+    private String devRegionWorkload;
 
     @Schema(description = "总订单核算工作量（人天）")
-    private BigDecimal totalOrderWorkload;
+    private String totalOrderWorkload;
 
     @Schema(description = "订单核算总部工作量(人天)")
-    private BigDecimal orderHqWorkload;
+    private String orderHqWorkload;
 
     @Schema(description = "订单核算区域")
     private String orderRegion;
 
     @Schema(description = "订单核算区域工作量(人天)")
-    private BigDecimal orderRegionWorkload;
+    private String orderRegionWorkload;
 
     @Schema(description = "系统测试工作量（人天）")
-    private BigDecimal systemTestWorkload;
+    private String systemTestWorkload;
 
     @Schema(description = "集成测试工作量（人天）")
-    private BigDecimal integrationTestWorkload;
+    private String integrationTestWorkload;
 
     @Schema(description = "学习成本工作量（人天）")
-    private BigDecimal learningCostWorkload;
+    private String learningCostWorkload;
 
     @Schema(description = "流程管理工作量（人天）")
-    private BigDecimal processManageWorkload;
+    private String processManageWorkload;
 
     @Schema(description = "其他工作量详情")
     private String otherWorkloadDetail;
 
     @Schema(description = "期望完成时间")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime expectedCompleteTime;
+    private String expectedCompleteTime;
 
     @Schema(description = "定制单号")
     private String customNo;
@@ -177,13 +166,11 @@ public class ReqList implements Serializable {
 
     @Schema(description = "创建时间")
     @TableField(fill = FieldFill.INSERT)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdAt;
+    private String createdAt;
 
     @Schema(description = "更新时间")
     @TableField(fill = FieldFill.INSERT_UPDATE)
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedAt;
+    private String updatedAt;
 
     @Schema(description = "备注")
     private String remark;

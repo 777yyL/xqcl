@@ -1,6 +1,7 @@
 package com.xqcl.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xqcl.entity.ReqDetail;
@@ -49,48 +50,67 @@ public class ReqDetailService extends ServiceImpl<ReqDetailMapper, ReqDetail> {
                 return;
             }
 
-            // 1. 查询已存在的数据
-            List<String> reqNos = batch.stream()
-                    .map(ReqDetail::getReqNo)
-                    .distinct()
+            // 分离有 reqNo 和无 reqNo 的数据
+            List<ReqDetail> hasReqNo = batch.stream()
+                    .filter(d -> StrUtil.isNotBlank(d.getReqNo()))
                     .collect(Collectors.toList());
 
-            LambdaQueryWrapper<ReqDetail> wrapper = new LambdaQueryWrapper<>();
-            wrapper.in(ReqDetail::getReqNo, reqNos);
-            List<ReqDetail> existDetails = baseMapper.selectList(wrapper);
+            List<ReqDetail> noReqNo = batch.stream()
+                    .filter(d -> StrUtil.isBlank(d.getReqNo()))
+                    .collect(Collectors.toList());
 
-            // 2. 构建已存在数据的唯一键映射 (reqNo + reqName)
-            Map<String, ReqDetail> existMap = existDetails.stream()
-                    .collect(Collectors.toMap(
-                            detail -> detail.getReqNo() + "_" + detail.getReqName(),
-                            detail -> detail
-                    ));
-
-            // 3. 分类需要新增和更新的数据
+            // 1. 处理有 reqNo 的数据（查询已存在的）
             List<ReqDetail> insertList = new ArrayList<>();
             List<ReqDetail> updateList = new ArrayList<>();
 
-            for (ReqDetail reqDetail : batch) {
-                String key = reqDetail.getReqNo() + "_" + reqDetail.getReqName();
-                ReqDetail existDetail = existMap.get(key);
+            if (!hasReqNo.isEmpty()) {
+                // 查询已存在的数据
+                List<String> reqNos = hasReqNo.stream()
+                        .map(ReqDetail::getReqNo)
+                        .distinct()
+                        .collect(Collectors.toList());
 
-                if (existDetail != null) {
-                    // 需要更新
-                    reqDetail.setId(existDetail.getId());
-                    updateList.add(reqDetail);
-                } else {
-                    // 需要新增
-                    insertList.add(reqDetail);
+                LambdaQueryWrapper<ReqDetail> wrapper = new LambdaQueryWrapper<>();
+                wrapper.in(ReqDetail::getReqNo, reqNos);
+                List<ReqDetail> existDetails = baseMapper.selectList(wrapper);
+
+                // 构建已存在数据的映射
+                Map<String, ReqDetail> existMap = existDetails.stream()
+                        .collect(Collectors.toMap(
+                                detail -> {
+                                    String reqName = detail.getReqName();
+                                    return detail.getReqNo() + "_" + (reqName != null ? reqName : "");
+                                },
+                                detail -> detail
+                        ));
+
+                // 分类需要新增和更新的数据
+                for (ReqDetail reqDetail : hasReqNo) {
+                    String reqName = reqDetail.getReqName();
+                    String key = reqDetail.getReqNo() + "_" + (reqName != null ? reqName : "");
+                    ReqDetail existDetail = existMap.get(key);
+
+                    if (existDetail != null) {
+                        // 需要更新
+                        reqDetail.setId(existDetail.getId());
+                        updateList.add(reqDetail);
+                    } else {
+                        // 需要新增
+                        insertList.add(reqDetail);
+                    }
                 }
             }
 
-            // 4. 批量插入
+            // 2. 无 reqNo 的数据直接插入（无法判断是否存在）
+            insertList.addAll(noReqNo);
+
+            // 3. 批量插入
             if (!insertList.isEmpty()) {
                 saveBatch(insertList, 500);
                 log.info("批量插入需求详情: {} 条", insertList.size());
             }
 
-            // 5. 批量更新
+            // 4. 批量更新
             if (!updateList.isEmpty()) {
                 updateBatchById(updateList, 500);
                 log.info("批量更新需求详情: {} 条", updateList.size());

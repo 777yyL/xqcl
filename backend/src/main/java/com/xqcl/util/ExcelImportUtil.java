@@ -9,12 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -55,32 +50,47 @@ public class ExcelImportUtil {
 
             List<ReqList> batchList = new ArrayList<>(BATCH_SIZE);
             int count = 0;
+            int skippedCount = 0; // 记录解析失败的行数
 
             // 跳过表头，从第二行开始读取
             for (int i = 1; i < totalRows; i++) {
                 Row row = sheet.getRow(i);
-                if (row == null || isRowEmpty(row)) {
+                if (row == null) {
+                    log.warn("第 {} 行为空，跳过", i + 1);
+                    skippedCount++;
                     continue;
                 }
 
-                ReqList reqList = parseReqListRow(row);
-                if (reqList != null && StrUtil.isNotBlank(reqList.getReqNo())) {
-                    batchList.add(reqList);
-                    count++;
+                try {
+                    ReqList reqList = parseReqListRow(row);
+                    if (reqList != null) {
+                        batchList.add(reqList);
+                        count++;
 
-                    // 每达到批次大小就处理一次
-                    if (batchList.size() >= BATCH_SIZE) {
-                        processor.process(batchList);
-                        batchList.clear();
-                        log.info("已处理需求列表: {}/{}", i + 1, totalRows - 1);
+                        // 每达到批次大小就处理一次
+                        if (batchList.size() >= BATCH_SIZE) {
+                            processor.process(batchList);
+                            batchList.clear();
+                            log.info("已处理需求列表: {}/{}", count, totalRows - 1);
+                        }
+                    } else {
+                        skippedCount++;
+                        log.warn("第 {} 行解析失败，跳过", i + 1);
                     }
+                } catch (Exception e) {
+                    skippedCount++;
+                    log.error("第 {} 行解析异常: {}", i + 1, e.getMessage());
                 }
             }
 
             // 处理剩余数据
             if (!batchList.isEmpty()) {
                 processor.process(batchList);
-                log.info("已处理需求列表: {}/{}", totalRows - 1, totalRows - 1);
+                log.info("已处理需求列表: {}/{}", count, totalRows - 1);
+            }
+
+            if (skippedCount > 0) {
+                log.warn("共跳过 {} 行数据", skippedCount);
             }
 
             return count;
@@ -121,32 +131,47 @@ public class ExcelImportUtil {
 
             List<ReqDetail> batchList = new ArrayList<>(BATCH_SIZE);
             int count = 0;
+            int skippedCount = 0; // 记录解析失败的行数
 
             // 跳过表头，从第二行开始读取
             for (int i = 1; i < totalRows; i++) {
                 Row row = sheet.getRow(i);
-                if (row == null || isRowEmpty(row)) {
+                if (row == null) {
+                    log.warn("第 {} 行为空，跳过", i + 1);
+                    skippedCount++;
                     continue;
                 }
 
-                ReqDetail reqDetail = parseReqDetailRow(row);
-                if (reqDetail != null && StrUtil.isNotBlank(reqDetail.getReqNo()) && StrUtil.isNotBlank(reqDetail.getReqName())) {
-                    batchList.add(reqDetail);
-                    count++;
+                try {
+                    ReqDetail reqDetail = parseReqDetailRow(row);
+                    if (reqDetail != null) {
+                        batchList.add(reqDetail);
+                        count++;
 
-                    // 每达到批次大小就处理一次
-                    if (batchList.size() >= BATCH_SIZE) {
-                        processor.process(batchList);
-                        batchList.clear();
-                        log.info("已处理需求详情: {}/{}", i + 1, totalRows - 1);
+                        // 每达到批次大小就处理一次
+                        if (batchList.size() >= BATCH_SIZE) {
+                            processor.process(batchList);
+                            batchList.clear();
+                            log.info("已处理需求详情: {}/{}", count, totalRows - 1);
+                        }
+                    } else {
+                        skippedCount++;
+                        log.warn("第 {} 行解析失败，跳过", i + 1);
                     }
+                } catch (Exception e) {
+                    skippedCount++;
+                    log.error("第 {} 行解析异常: {}", i + 1, e.getMessage());
                 }
             }
 
             // 处理剩余数据
             if (!batchList.isEmpty()) {
                 processor.process(batchList);
-                log.info("已处理需求详情: {}/{}", totalRows - 1, totalRows - 1);
+                log.info("已处理需求详情: {}/{}", count, totalRows - 1);
+            }
+
+            if (skippedCount > 0) {
+                log.warn("共跳过 {} 行数据", skippedCount);
             }
 
             return count;
@@ -215,29 +240,29 @@ public class ExcelImportUtil {
             reqList.setReqOwner(getCellStringValue(row, 19));
             reqList.setOwnerDept(getCellStringValue(row, 20));
             reqList.setCurrentHandler(getCellStringValue(row, 21));
-            reqList.setCreateTime(getCellDateTimeValue(row, 22));
-            reqList.setSubmitTime(getCellDateTimeValue(row, 23));
-            reqList.setLastSubmitTime(getCellDateTimeValue(row, 24));
-            reqList.setEvalTime(getCellDateTimeValue(row, 25));
-            reqList.setLastEvalTime(getCellDateTimeValue(row, 26));
-            reqList.setTotalEvalHours(getCellBigDecimalValue(row, 27));
-            reqList.setEvalStayDays(getCellBigDecimalValue(row, 28));
-            reqList.setScheduleStartTime(getCellDateTimeValue(row, 29));
-            reqList.setScheduleEndTime(getCellDateTimeValue(row, 30));
-            reqList.setTotalWorkload(getCellBigDecimalValue(row, 31));
-            reqList.setDevHqWorkload(getCellBigDecimalValue(row, 32));
+            reqList.setCreateTime(getCellStringValue(row, 22));
+            reqList.setSubmitTime(getCellStringValue(row, 23));
+            reqList.setLastSubmitTime(getCellStringValue(row, 24));
+            reqList.setEvalTime(getCellStringValue(row, 25));
+            reqList.setLastEvalTime(getCellStringValue(row, 26));
+            reqList.setTotalEvalHours(getCellStringValue(row, 27));
+            reqList.setEvalStayDays(getCellStringValue(row, 28));
+            reqList.setScheduleStartTime(getCellStringValue(row, 29));
+            reqList.setScheduleEndTime(getCellStringValue(row, 30));
+            reqList.setTotalWorkload(getCellStringValue(row, 31));
+            reqList.setDevHqWorkload(getCellStringValue(row, 32));
             reqList.setDevRegion(getCellStringValue(row, 33));
-            reqList.setDevRegionWorkload(getCellBigDecimalValue(row, 34));
-            reqList.setTotalOrderWorkload(getCellBigDecimalValue(row, 35));
-            reqList.setOrderHqWorkload(getCellBigDecimalValue(row, 36));
+            reqList.setDevRegionWorkload(getCellStringValue(row, 34));
+            reqList.setTotalOrderWorkload(getCellStringValue(row, 35));
+            reqList.setOrderHqWorkload(getCellStringValue(row, 36));
             reqList.setOrderRegion(getCellStringValue(row, 37));
-            reqList.setOrderRegionWorkload(getCellBigDecimalValue(row, 38));
-            reqList.setSystemTestWorkload(getCellBigDecimalValue(row, 39));
-            reqList.setIntegrationTestWorkload(getCellBigDecimalValue(row, 40));
-            reqList.setLearningCostWorkload(getCellBigDecimalValue(row, 41));
-            reqList.setProcessManageWorkload(getCellBigDecimalValue(row, 42));
+            reqList.setOrderRegionWorkload(getCellStringValue(row, 38));
+            reqList.setSystemTestWorkload(getCellStringValue(row, 39));
+            reqList.setIntegrationTestWorkload(getCellStringValue(row, 40));
+            reqList.setLearningCostWorkload(getCellStringValue(row, 41));
+            reqList.setProcessManageWorkload(getCellStringValue(row, 42));
             reqList.setOtherWorkloadDetail(getCellStringValue(row, 43));
-            reqList.setExpectedCompleteTime(getCellDateTimeValue(row, 44));
+            reqList.setExpectedCompleteTime(getCellStringValue(row, 44));
             reqList.setCustomNo(getCellStringValue(row, 45));
             reqList.setJknNo(getCellStringValue(row, 46));
             reqList.setDevNo(getCellStringValue(row, 47));
@@ -280,20 +305,20 @@ public class ExcelImportUtil {
             reqDetail.setOwnerDept(getCellStringValue(row, 23));
             reqDetail.setEvaluator(getCellStringValue(row, 24));
             reqDetail.setEvaluatorDept(getCellStringValue(row, 25));
-            reqDetail.setCreateTime(getCellDateTimeValue(row, 26));
-            reqDetail.setSubmitTime(getCellDateTimeValue(row, 27));
-            reqDetail.setCompleteTime(getCellDateTimeValue(row, 28));
-            reqDetail.setComponentEvalStartTime(getCellDateTimeValue(row, 29));
-            reqDetail.setComponentEvalEndTime(getCellDateTimeValue(row, 30));
+            reqDetail.setCreateTime(getCellStringValue(row, 26));
+            reqDetail.setSubmitTime(getCellStringValue(row, 27));
+            reqDetail.setCompleteTime(getCellStringValue(row, 28));
+            reqDetail.setComponentEvalStartTime(getCellStringValue(row, 29));
+            reqDetail.setComponentEvalEndTime(getCellStringValue(row, 30));
             reqDetail.setComponentEvalCycle(getCellStringValue(row, 31));
-            reqDetail.setEvalHours(getCellBigDecimalValue(row, 32));
-            reqDetail.setStayTime(getCellBigDecimalValue(row, 33));
-            reqDetail.setEvalWorkload(getCellBigDecimalValue(row, 34));
+            reqDetail.setEvalHours(getCellStringValue(row, 32));
+            reqDetail.setStayTime(getCellStringValue(row, 33));
+            reqDetail.setEvalWorkload(getCellStringValue(row, 34));
             reqDetail.setWorkloadDetail(getCellStringValue(row, 35));
-            reqDetail.setRdScheduleStartTime(getCellDateTimeValue(row, 36));
-            reqDetail.setRdScheduleEndTime(getCellDateTimeValue(row, 37));
-            reqDetail.setScheduleStartTime(getCellDateTimeValue(row, 38));
-            reqDetail.setScheduleEndTime(getCellDateTimeValue(row, 39));
+            reqDetail.setRdScheduleStartTime(getCellStringValue(row, 36));
+            reqDetail.setRdScheduleEndTime(getCellStringValue(row, 37));
+            reqDetail.setScheduleStartTime(getCellStringValue(row, 38));
+            reqDetail.setScheduleEndTime(getCellStringValue(row, 39));
             reqDetail.setCustomNo(getCellStringValue(row, 40));
             reqDetail.setDevNo(getCellStringValue(row, 41));
             return reqDetail;
@@ -334,38 +359,5 @@ public class ExcelImportUtil {
             default:
                 return null;
         }
-    }
-
-    /**
-     * 获取单元格日期时间值
-     */
-    private static LocalDateTime getCellDateTimeValue(Row row, int columnIndex) {
-        Cell cell = row.getCell(columnIndex);
-        if (cell == null) {
-            return null;
-        }
-        CellType cellType = cell.getCellType();
-        if (cellType == CellType.NUMERIC && DateUtil.isCellDateFormatted(cell)) {
-            Date date = cell.getDateCellValue();
-            if (date != null) {
-                return Instant.ofEpochMilli(date.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * 获取单元格 BigDecimal 值
-     */
-    private static BigDecimal getCellBigDecimalValue(Row row, int columnIndex) {
-        Cell cell = row.getCell(columnIndex);
-        if (cell == null) {
-            return null;
-        }
-        CellType cellType = cell.getCellType();
-        if (cellType == CellType.NUMERIC) {
-            return BigDecimal.valueOf(cell.getNumericCellValue());
-        }
-        return null;
     }
 }
